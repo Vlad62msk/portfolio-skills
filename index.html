@@ -1,12 +1,145 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Компетенции</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Компетенции</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 20% 0%,#1a0a00 0%,#0a0a0a 50%,#000 100%);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  color:#fff;
+  overflow-x:hidden;
+}
+.glow1{position:fixed;top:-20%;right:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,0,.08) 0%,transparent 70%);pointer-events:none}
+.glow2{position:fixed;bottom:-30%;left:-10%;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,0,.05) 0%,transparent 70%);pointer-events:none}
+.wrap{position:relative;z-index:1;padding:40px 24px;max-width:1100px;margin:0 auto}
+h1{font-size:36px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.sub{color:rgba(255,255,255,.35);font-size:14px;margin-bottom:32px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:40px}
+.tag-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all .25s;background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.1)}
+.tag-btn:hover{border-color:rgba(255,107,0,.4);color:rgba(255,255,255,.8)}
+.tag-btn.active{background:#FF6B00;color:#000;border-color:#FF6B00;font-weight:600}
+.reset-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:#FF6B00;color:#000;display:none}
+.reset-btn.show{display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),1fr));gap:20px}
+.card{position:relative;border-radius:16px;padding:28px;background:rgba(255,255,255,.03);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.06);transition:all .3s ease;overflow:hidden}
+.card:hover{background:rgba(255,255,255,.06)}
+.card-line{position:absolute;top:0;left:28px;right:28px;height:1px}
+.card-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.card h2{font-size:18px;font-weight:600;line-height:1.3}
+.card p{font-size:14px;line-height:1.7;color:rgba(255,255,255,.45);margin-bottom:18px;padding-left:20px}
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;padding-left:20px}
+.ctag{padding:4px 10px;border-radius:8px;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s}
+.ctag:hover{filter:brightness(1.3)}
+.ctag.active{color:#000!important}
+.foot{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);text-align:center}
+.foot p{font-size:12px;color:rgba(255,255,255,.2)}
+.card.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="glow1"></div>
+<div class="glow2"></div>
+<div class="wrap">
+  <h1>Что я умею</h1>
+  <p class="sub">Нажмите на тег, чтобы отфильтровать карточки</p>
+  <div class="tags" id="tagCloud"></div>
+  <div class="grid" id="grid"></div>
+  <div class="foot"><p>Карточки компетенций · Портфолио Владимира Круглова</p></div>
+</div>
+<script>
+const data=[
+{title:"Проектирование образовательных продуктов",description:"Полный цикл — от исследования аудитории до запуска и итерации. Карты компетенций, Learning Journey Map, сервисные карты. Разработка с нуля и пересборка существующих продуктов. Модель Triple Diamond как основа процесса. Умею работать и с техническими дисциплинами (Java-разработка, продакт-менеджмент), и с творческими (3D, интерьерный дизайн, моушн) — и понимаю, почему для них нужны разные подходы.",tags:["Learning Design","LJM","Карты компетенций","Triple Diamond","UX исследования"],accent:"#FF6B00"},
+{title:"Образовательная аналитика",description:"Data-driven оптимизация программ. Не просто «смотрю дашборд» — использую данные для принятия решений: какой модуль пересобрать, где мотивация падает, что оптимизировать в первую очередь. Кластерный анализ аудиторий, survival analysis для фазирования продуктов, A/B-тесты образовательных гипотез.",tags:["CSI","NPS","COR","AARRR","Кластерный анализ","Tableau"],accent:"#FF8C00"},
+{title:"AI-интеграция в образовательное производство",description:"Разрабатываю методологии промпт-стратегий и системные промпты для коммерческих продуктов. Упаковываю процессы разработки контента с AI — от декомпозиции учебных целей до вычитки. Принцип: AI усиливает экспертизу, а не заменяет её. Результат — ×5 к скорости производства без потери педагогического качества.",tags:["Промпт-инжиниринг","Claude","ChatGPT","RAG","Контент-автоматизация"],accent:"#FF5500"},
+{title:"Построение команд и управление производством",description:"Поиск, онбординг и координация авторов-экспертов — до 50+ человек на проекте. Управление методическими командами до 10 человек. Параллельное производство контента с несколькими авторами без потери системности. Создаю общие артефакты (глоссарии, карты прогрессии, шаблоны), которые делают расхождения видимыми до того, как они становятся проблемой.",tags:["Онбординг авторов","OKR/KPI","Процессы качества","Менторинг","ДПО/ФГОС"],accent:"#FF7A00"},
+{title:"Мотивационный дизайн и геймификация",description:"Проектирование мотивационных механик, встроенных в образовательный продукт — не «баллы и бейджи», а система, основанная на исследованиях. Полевой опыт: 24 интервью в отделениях Сбера, модель измерения эффективности геймификации. Академическая база: Вербах, ARCS-V, Self-Determination Theory.",tags:["Геймификация","ARCS-V","Мотивация","Полевые исследования","SDT"],accent:"#FF4400"},
+{title:"Преподавание и публичные выступления",description:"От индивидуальных менторских сессий до аудиторий 100+ человек. Курс «Образовательное решение как продукт» в НИУ ВШЭ — оценка 4,72/5, дважды лучший по студенческим критериям. Воркшопы в «Гараже», вебинары, семинары для технических команд. Автор статей на vc.ru, в EduTech (Сбер Университет), на площадках Лаборатории геймификации.",tags:["НИУ ВШЭ","Воркшопы","Вебинары","Публикации","4.72/5"],accent:"#FF9500"}
+];
+
+const allTags=[...new Set(data.flatMap(c=>c.tags))];
+let activeTag=null;
+
+function render(){
+  const cloud=document.getElementById('tagCloud');
+  const grid=document.getElementById('grid');
+  
+  // Tags
+  cloud.innerHTML='';
+  const reset=document.createElement('button');
+  reset.className='reset-btn'+(activeTag?' show':'');
+  reset.textContent='Сбросить ✕';
+  reset.onclick=()=>{activeTag=null;render()};
+  cloud.appendChild(reset);
+  
+  allTags.forEach(tag=>{
+    const btn=document.createElement('button');
+    btn.className='tag-btn'+(activeTag===tag?' active':'');
+    btn.textContent=tag;
+    btn.onclick=()=>{activeTag=activeTag===tag?null:tag;render()};
+    cloud.appendChild(btn);
+  });
+
+  // Cards
+  grid.innerHTML='';
+  data.forEach(comp=>{
+    const show=!activeTag||comp.tags.includes(activeTag);
+    if(!show)return;
+    
+    const card=document.createElement('div');
+    card.className='card';
+    card.onmouseenter=()=>{
+      card.style.borderColor=comp.accent+'33';
+      card.style.boxShadow='0 8px 40px '+comp.accent+'11, inset 0 1px 0 rgba(255,255,255,.05)';
+    };
+    card.onmouseleave=()=>{
+      card.style.borderColor='rgba(255,255,255,.06)';
+      card.style.boxShadow='none';
+    };
+    
+    card.innerHTML=`
+      <div class="card-line" style="background:linear-gradient(90deg,transparent 0%,${comp.accent}55 50%,transparent 100%)"></div>
+      <div class="card-head">
+        <div class="dot" style="background:${comp.accent};box-shadow:0 0 12px ${comp.accent}88"></div>
+        <h2>${comp.title}</h2>
+      </div>
+      <p>${comp.description}</p>
+      <div class="card-tags">${comp.tags.map(tag=>`
+        <span class="ctag${activeTag===tag?' active':''}" 
+          style="background:${activeTag===tag?comp.accent:comp.accent+'15'};color:${activeTag===tag?'#000':comp.accent+'cc'};border:1px solid ${activeTag===tag?comp.accent:comp.accent+'22'}"
+          data-tag="${tag}" data-accent="${comp.accent}">${tag}</span>
+      `).join('')}</div>
+    `;
+    
+    card.querySelectorAll('.ctag').forEach(el=>{
+      el.onclick=()=>{
+        const t=el.dataset.tag;
+        activeTag=activeTag===t?null:t;
+        render();
+      };
+      el.onmouseenter=()=>{
+        if(activeTag!==el.dataset.tag){
+          el.style.background=el.dataset.accent+'25';
+          el.style.borderColor=el.dataset.accent+'44';
+        }
+      };
+      el.onmouseleave=()=>{
+        if(activeTag!==el.dataset.tag){
+          el.style.background=el.dataset.accent+'15';
+          el.style.borderColor=el.dataset.accent+'22';
+        }
+      };
+    });
+    
+    grid.appendChild(card);
+  });
+}
+
+render();
+</script>
+</body>
 </html>
